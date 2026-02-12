@@ -19,7 +19,6 @@
 
         .main-container { width: 100%; max-width: 450px; margin: 0 auto; padding: 10px; }
 
-        /* 五十音表：すべての固定（sticky）を解除 */
         .header-area { background-color: var(--bg-color); padding: 5px 0 15px 0; }
         .aiueo-container { display: flex; flex-direction: row-reverse; gap: 1px; justify-content: center; }
         .column { display: flex; flex-direction: column; gap: 1px; }
@@ -27,14 +26,10 @@
             width: calc(100vw / 11); max-width: 40px; height: 45px; 
             border: 1px solid var(--main-blue); display: flex; align-items: center; border-radius: 4px; overflow: hidden; background-color: #fff; 
         }
-        /* sticky設定を完全に削除 */
-        .column div:first-child { position: static; } 
-
         .char-cell.empty { border: none; background: none; }
         .char-name { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000; }
         .char-count { width: 14px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; border-left: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.05); }
 
-        /* コンテンツエリア：初期余白を設定（JSで動的に変化させます） */
         .content { padding-bottom: 220px; transition: padding-bottom 0.3s ease; } 
 
         .section-header { 
@@ -52,10 +47,37 @@
         .toggle-icon { margin-right: 8px; font-size: 12px; width: 15px; display: inline-block; }
         .section-title { font-size: 14px; }
 
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .pokemon-entry { background: #fff; border: 1px solid var(--main-blue); padding: 8px 4px; font-size: 11px; text-align: center; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 80px; }
+        /* ポケモンリストのグリッド */
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        @media (min-width: 400px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
+
+        /* ポケモン項目のスタイル変更 */
+        .pokemon-entry { 
+            background: #fff; 
+            border: 1.5px solid var(--main-blue); 
+            padding: 4px 6px; 
+            font-size: 11px; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; /* 名前とボタンを両端に */
+            min-height: 40px; 
+        }
         
-        .p-btn { cursor: pointer; border: 1.5px solid var(--dark-gray); border-radius: 6px; width: 100%; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-top: 5px; }
+        .p-name-box { flex: 1; text-align: left; padding-right: 4px; line-height: 1.2; }
+
+        .p-btn { 
+            cursor: pointer; 
+            border: 1.5px solid var(--dark-gray); 
+            border-radius: 4px; 
+            width: 30px; 
+            height: 30px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 16px; 
+            flex-shrink: 0; /* ボタンが潰れないように */
+        }
         .btn-plus { background: var(--main-red); color: #fff; }
         .btn-minus { background: #4d94ff; color: #fff; }
 
@@ -158,7 +180,6 @@
         }
     }
 
-    // 入力メニュー開閉時に余白を調整する
     function toggleBottomMenu(headerEl) {
         const body = document.getElementById('bottom-menu-body');
         const icon = headerEl.querySelector('.toggle-icon');
@@ -168,18 +189,14 @@
         if (body.style.display === 'none') {
             body.style.display = 'block';
             icon.innerText = '▼';
-            // メニューの高さを計算して余白を設定
             setTimeout(() => {
-                const height = bottomPanel.offsetHeight;
-                contentArea.style.paddingBottom = height + 20 + 'px';
+                contentArea.style.paddingBottom = bottomPanel.offsetHeight + 20 + 'px';
             }, 10);
         } else {
             body.style.display = 'none';
             icon.innerText = '▶';
-            // メニューが閉じた時のヘッダー分の余白
             setTimeout(() => {
-                const height = bottomPanel.offsetHeight;
-                contentArea.style.paddingBottom = height + 20 + 'px';
+                contentArea.style.paddingBottom = bottomPanel.offsetHeight + 20 + 'px';
             }, 10);
         }
     }
@@ -188,406 +205,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // テストデータ
         const paldeaDex = [
-       {id:"001",name:"ニャオハ"},
-{id:"002",name:"ニャローテ"},
-{id:"003",name:"マスカーニャ"},
-{id:"004",name:"ホゲータ"},
-{id:"005",name:"アチゲータ"},
-{id:"006",name:"ラウドボーン"},
-{id:"007",name:"クワッス"},
-{id:"008",name:"ウェルカモ"},
-{id:"009",name:"ウェーニバル"},
-{id:"010",name:"グルトン"},
-{id:"011",name:"パフュートン♂"},
-{id:"012",name:"タマンチュラ"},
-{id:"013",name:"ワナイダー"},
-{id:"014",name:"マメバッタ"},
-{id:"015",name:"エクスレッグ"},
-{id:"016",name:"ハネッコ"},
-{id:"017",name:"ポポッコ"},
-{id:"018",name:"ワタッコ"},
-{id:"019",name:"ヤヤコマ"},
-{id:"020",name:"ヒノヤコマ"},
-{id:"021",name:"ファイアロー"},
-{id:"022",name:"パモ"},
-{id:"023",name:"パモット"},
-{id:"024",name:"パーモット"},
-{id:"025",name:"デルビル"},
-{id:"026",name:"ヘルガー"},
-{id:"027",name:"ヤングース"},
-{id:"028",name:"デカグース"},
-{id:"029",name:"ホシガリス"},
-{id:"030",name:"ヨクバリス"},
-{id:"031",name:"ヒマナッツ"},
-{id:"032",name:"キマワリ"},
-{id:"033",name:"コロボーシ"},
-{id:"034",name:"コロトック"},
-{id:"035",name:"コフキムシ"},
-{id:"036",name:"コフーライ"},
-{id:"037",name:"ビビヨン"},
-{id:"038",name:"ミツハニー"},
-{id:"039",name:"ビークイン"},
-{id:"040",name:"ココガラ"},
-{id:"041",name:"アオガラス"},
-{id:"042",name:"アーマーガア"},
-{id:"043",name:"ピンプク"},
-{id:"044",name:"ラッキー"},
-{id:"045",name:"ハピナス"},
-{id:"046",name:"ルリリ"},
-{id:"047",name:"マリル"},
-{id:"048",name:"マリルリ"},
-{id:"049",name:"アメタマ"},
-{id:"050",name:"アメモース"},
-{id:"051",name:"ブイゼル"},
-{id:"052",name:"フローゼル"},
-{id:"053",name:"ウパー(パルデア)"},
-{id:"054",name:"ドオー"},
-{id:"055",name:"コダック"},
-{id:"056",name:"ゴルダック"},
-{id:"057",name:"カムカメ"},
-{id:"058",name:"カジリガメ"},
-{id:"059",name:"ププリン"},
-{id:"060",name:"プリン"},
-{id:"061",name:"プクリン"},
-{id:"062",name:"ラルトス"},
-{id:"063",name:"キルリア"},
-{id:"064",name:"サーナイト"},
-{id:"065",name:"エルレイド"},
-{id:"066",name:"スリープ"},
-{id:"067",name:"スリーパー"},
-{id:"068",name:"ゴース"},
-{id:"069",name:"ゴースト"},
-{id:"070",name:"ゲンガー"},
-{id:"071",name:"ワッカネズミ"},
-{id:"072",name:"イッカネズミ"},
-{id:"073",name:"ピチュー"},
-{id:"074",name:"ピカチュウ"},
-{id:"075",name:"ライチュウ"},
-{id:"076",name:"パピモッチ"},
-{id:"077",name:"バウッツェル"},
-{id:"078",name:"ナマケロ"},
-{id:"079",name:"ヤルキモノ"},
-{id:"080",name:"ケッキング"},
-{id:"081",name:"アマカジ"},
-{id:"082",name:"アママイコ"},
-{id:"083",name:"アマージョ"},
-{id:"084",name:"ミニーブ"},
-{id:"085",name:"オリーニョ"},
-{id:"086",name:"オリーヴァ"},
-{id:"087",name:"ウソハチ"},
-{id:"088",name:"ウソッキー"},
-{id:"089",name:"イワンコ"},
-{id:"090",name:"ルガルガン"},
-{id:"091",name:"タンドン"},
-{id:"092",name:"トロッゴン"},
-{id:"093",name:"セキタンザン"},
-{id:"094",name:"コリンク"},
-{id:"095",name:"ルクシオ"},
-{id:"096",name:"レントラー"},
-{id:"097",name:"ムックル"},
-{id:"098",name:"ムクバード"},
-{id:"099",name:"ムクホーク"},
-{id:"100",name:"オドリドリ"},
-{id:"101",name:"メリープ"},
-{id:"102",name:"モココ"},
-{id:"103",name:"デンリュウ"},
-{id:"104",name:"チュリネ"},
-{id:"105",name:"ドレディア"},
-{id:"106",name:"キノココ"},
-{id:"107",name:"キノガッサ"},
-{id:"108",name:"カジッチュ"},
-{id:"109",name:"アップリュー"},
-{id:"110",name:"タルップル"},
-{id:"111",name:"バネブー"},
-{id:"112",name:"ブーピッグ"},
-{id:"113",name:"イキリンコ"},
-{id:"114",name:"ムウマ"},
-{id:"115",name:"ムウマージ"},
-{id:"116",name:"マクノシタ"},
-{id:"117",name:"ハリテヤマ"},
-{id:"118",name:"マケンカニ"},
-{id:"119",name:"ケケンカニ"},
-{id:"120",name:"ヤトウモリ"},
-{id:"121",name:"エンニュート"},
-{id:"122",name:"ゴマゾウ"},
-{id:"123",name:"ドンファン"},
-{id:"124",name:"ゾウドウ"},
-{id:"125",name:"ダイオウドウ"},
-{id:"126",name:"フカマル"},
-{id:"127",name:"ガバイト"},
-{id:"128",name:"ガブリアス"},
-{id:"129",name:"コジオ"},
-{id:"130",name:"ジオヅム"},
-{id:"131",name:"キョジオーン"},
-{id:"132",name:"キャモメ"},
-{id:"133",name:"ペリッパー"},
-{id:"134",name:"コイキング"},
-{id:"135",name:"ギャラドス"},
-{id:"136",name:"サシカマス"},
-{id:"137",name:"カマスジョー"},
-{id:"138",name:"バスラオ"},
-{id:"139",name:"ゴクリン"},
-{id:"140",name:"マルノーム"},
-{id:"141",name:"ニャース"},
-{id:"142",name:"ペルシアン"},
-{id:"143",name:"フワンテ"},
-{id:"144",name:"フワライド"},
-{id:"145",name:"フラベベ"},
-{id:"146",name:"フラエッテ"},
-{id:"147",name:"フラージェス"},
-{id:"148",name:"ディグダ"},
-{id:"149",name:"ダグトリオ"},
-{id:"150",name:"コータス"},
-{id:"151",name:"ドンメル"},
-{id:"152",name:"バクーダ"},
-{id:"153",name:"ドーミラー"},
-{id:"154",name:"ドータクン"},
-{id:"155",name:"キバゴ"},
-{id:"156",name:"オノンド"},
-{id:"157",name:"オノノクス"},
-{id:"158",name:"マンキー"},
-{id:"159",name:"オコリザル"},
-{id:"160",name:"コノヨザル"},
-{id:"161",name:"アサナン"},
-{id:"162",name:"チャーレム"},
-{id:"163",name:"リオル"},
-{id:"164",name:"ルカリオ"},
-{id:"165",name:"カルボウ"},
-{id:"166",name:"グレンアルマ"},
-{id:"167",name:"ソウブレイズ"},
-{id:"168",name:"ドジョッチ"},
-{id:"169",name:"ナマズン"},
-{id:"170",name:"ズピカ"},
-{id:"171",name:"ハラバリー"},
-{id:"172",name:"ヌメラ"},
-{id:"173",name:"ヌメイル"},
-{id:"174",name:"ヌメルゴン"},
-{id:"175",name:"グレッグル"},
-{id:"176",name:"ドクロッグ"},
-{id:"177",name:"カイデン"},
-{id:"178",name:"タイカイデン"},
-{id:"179",name:"イーブイ"},
-{id:"180",name:"シャワーズ"},
-{id:"181",name:"サンダース"},
-{id:"182",name:"ブースター"},
-{id:"183",name:"エーフィ"},
-{id:"184",name:"ブラッキー"},
-{id:"185",name:"リーフィア"},
-{id:"186",name:"グレイシア"},
-{id:"187",name:"ニンフィア"},
-{id:"188",name:"ノコッチ"},
-{id:"189",name:"ノココッチ"},
-{id:"190",name:"シキジカ"},
-{id:"191",name:"メブキジカ"},
-{id:"192",name:"キリンリキ"},
-{id:"193",name:"リキキリン"},
-{id:"194",name:"ベトベター"},
-{id:"195",name:"ベトベトン"},
-{id:"196",name:"オラチフ"},
-{id:"197",name:"マフィティフ"},
-{id:"198",name:"エレズン"},
-{id:"199",name:"ストリンダー"},
-{id:"200",name:"デデンネ"},
-{id:"201",name:"パチリス"},
-{id:"202",name:"シルシュルー"},
-{id:"203",name:"タギングル"},
-{id:"204",name:"オドシシ"},
-{id:"205",name:"タマゲタケ"},
-{id:"206",name:"モロバレル"},
-{id:"207",name:"ビリリダマ"},
-{id:"208",name:"マルマイン"},
-{id:"209",name:"コイル"},
-{id:"210",name:"レアコイル"},
-{id:"211",name:"ジバコイル"},
-{id:"212",name:"メタモン"},
-{id:"213",name:"ガーディ"},
-{id:"214",name:"ウインディ"},
-{id:"215",name:"ヒメグマ"},
-{id:"216",name:"リングマ"},
-{id:"217",name:"ザングース"},
-{id:"218",name:"ハブネーク"},
-{id:"219",name:"チルット"},
-{id:"220",name:"チルタリス"},
-{id:"221",name:"メェークル"},
-{id:"222",name:"ゴーゴート"},
-{id:"223",name:"ケンタロス"},
-{id:"224",name:"シシコ"},
-{id:"225",name:"カエンジシ"},
-{id:"226",name:"スカンプー"},
-{id:"227",name:"スカタンク"},
-{id:"228",name:"ゾロア"},
-{id:"229",name:"ゾロアーク"},
-{id:"230",name:"ニューラ"},
-{id:"231",name:"マニューラ"},
-{id:"232",name:"ヤミカラス"},
-{id:"233",name:"ドンカラス"},
-{id:"234",name:"ゴチム"},
-{id:"235",name:"ゴチミル"},
-{id:"236",name:"ゴチルゼル"},
-{id:"237",name:"ヤバチャ"},
-{id:"238",name:"ポットデス"},
-{id:"239",name:"ミミッキュ"},
-{id:"240",name:"クレッフィ"},
-{id:"241",name:"イエッサン"},
-{id:"242",name:"アノクサ"},
-{id:"243",name:"アノホラグサ"},
-{id:"244",name:"ノノクラゲ"},
-{id:"245",name:"リククラゲ"},
-{id:"246",name:"トロピウス"},
-{id:"247",name:"カリキリ"},
-{id:"248",name:"ラランテス"},
-{id:"249",name:"ガケガニ"},
-{id:"250",name:"カプサイジ"},
-{id:"251",name:"スコヴィラン"},
-{id:"252",name:"サボネア"},
-{id:"253",name:"ノクタス"},
-{id:"254",name:"シガロコ"},
-{id:"255",name:"ベラカス"},
-{id:"256",name:"コンパン"},
-{id:"257",name:"モルフォン"},
-{id:"258",name:"クヌギダマ"},
-{id:"259",name:"フォレトス"},
-{id:"260",name:"ストライク"},
-{id:"261",name:"ハッサム"},
-{id:"262",name:"ヘラクロス"},
-{id:"263",name:"ヒラヒナ"},
-{id:"264",name:"クエスパトラ"},
-{id:"265",name:"ヒポポタス"},
-{id:"266",name:"カバルドン"},
-{id:"267",name:"メグロコ"},
-{id:"268",name:"ワルビル"},
-{id:"269",name:"ワルビアル"},
-{id:"270",name:"スナヘビ"},
-{id:"271",name:"サダイジャ"},
-{id:"272",name:"ドロバンコ"},
-{id:"273",name:"バンバドロ"},
-{id:"274",name:"メラルバ"},
-{id:"275",name:"ウルガモス"},
-{id:"276",name:"タツベイ"},
-{id:"277",name:"コモルー"},
-{id:"278",name:"ボーマンダ"},
-{id:"279",name:"カヌチャン"},
-{id:"280",name:"ナカヌチャン"},
-{id:"281",name:"デカヌチャン"},
-{id:"282",name:"ミブリム"},
-{id:"283",name:"テブリム"},
-{id:"284",name:"ブリムオン"},
-{id:"285",name:"ベロバー"},
-{id:"286",name:"ギモー"},
-{id:"287",name:"オーロンゲ"},
-{id:"288",name:"ウミディグダ"},
-{id:"289",name:"ウミトリオ"},
-{id:"290",name:"オトシドリ"},
-{id:"291",name:"ナミイルカ"},
-{id:"292",name:"イルカマン"},
-{id:"293",name:"ブロロン"},
-{id:"294",name:"ブロロローム"},
-{id:"295",name:"モトトカゲ"},
-{id:"296",name:"ミミズズ"},
-{id:"297",name:"ヤミラミ"},
-{id:"298",name:"カゲボウズ"},
-{id:"299",name:"ジュペッタ"},
-{id:"300",name:"タイレーツ"},
-{id:"301",name:"ルチャブル"},
-{id:"302",name:"ミカルゲ"},
-{id:"303",name:"オンバット"},
-{id:"304",name:"オンバーン"},
-{id:"305",name:"ドラメシヤ"},
-{id:"306",name:"ドロンチ"},
-{id:"307",name:"ドラパルト"},
-{id:"308",name:"キラーメ"},
-{id:"309",name:"キラフロル"},
-{id:"310",name:"ロトム"},
-{id:"311",name:"ボチ"},
-{id:"312",name:"ハカドッグ"},
-{id:"313",name:"ヤレユータン"},
-{id:"314",name:"ナゲツケサル"},
-{id:"315",name:"ネッコアラ"},
-{id:"316",name:"ヨーギラス"},
-{id:"317",name:"サナギラス"},
-{id:"318",name:"バンギラス"},
-{id:"319",name:"イシヘンジン"},
-{id:"320",name:"コオリッポ"},
-{id:"321",name:"バチンウニ"},
-{id:"322",name:"スナバァ"},
-{id:"323",name:"シロデスナ"},
-{id:"324",name:"ヤドン"},
-{id:"325",name:"ヤドラン"},
-{id:"326",name:"ヤドキング"},
-{id:"327",name:"カラナクシ"},
-{id:"328",name:"トリトドン"},
-{id:"329",name:"シェルダー"},
-{id:"330",name:"パルシェン"},
-{id:"331",name:"ハリーセン"},
-{id:"332",name:"ラブカス"},
-{id:"333",name:"ケイコウオ"},
-{id:"334",name:"ネオラント"},
-{id:"335",name:"ハギギシリ"},
-{id:"336",name:"ママンボウ"},
-{id:"337",name:"クズモー"},
-{id:"338",name:"ドラミドロ"},
-{id:"339",name:"ウデッポウ"},
-{id:"340",name:"ブロスター"},
-{id:"341",name:"シビシラス"},
-{id:"342",name:"シビビール"},
-{id:"343",name:"シビルドン"},
-{id:"344",name:"ヒドイデ"},
-{id:"345",name:"ドヒドイデ"},
-{id:"346",name:"カラミンゴ"},
-{id:"347",name:"ミニリュウ"},
-{id:"348",name:"ハクリュー"},
-{id:"349",name:"カイリュー"},
-{id:"350",name:"ユキハミ"},
-{id:"351",name:"モスノウ"},
-{id:"352",name:"ユキカブリ"},
-{id:"353",name:"ユキノオー"},
-{id:"354",name:"デリバード"},
-{id:"355",name:"クマシュン"},
-{id:"356",name:"ツンベアー"},
-{id:"357",name:"ユキワラシ"},
-{id:"358",name:"オニゴーリ"},
-{id:"359",name:"ユキメノコ"},
-{id:"360",name:"フリージオ"},
-{id:"361",name:"アルクジラ"},
-{id:"362",name:"ハルクジラ"},
-{id:"363",name:"カチコール"},
-{id:"364",name:"クレベース"},
-{id:"365",name:"ワシボン"},
-{id:"366",name:"ウォーグル"},
-{id:"367",name:"コマタナ"},
-{id:"368",name:"キリキザン"},
-{id:"369",name:"ドドゲザン"},
-{id:"370",name:"モノズ"},
-{id:"371",name:"ジヘッド"},
-{id:"372",name:"サザンドラ"},
-{id:"373",name:"ミガルーサ"},
-{id:"374",name:"ヘイラッシャ"},
-{id:"375",name:"シャリタツ"},
-{id:"376",name:"イダイナキバ"},
-{id:"377",name:"サケブシッポ"},
-{id:"378",name:"アラブルタケ"},
-{id:"379",name:"ハバタクカミ"},
-{id:"380",name:"チヲハウハネ"},
-{id:"381",name:"スナノケガワ"},
-{id:"382",name:"テツノワダチ"},
-{id:"383",name:"テツノツツミ"},
-{id:"384",name:"テツノカイナ"},
-{id:"385",name:"テツノコウベ"},
-{id:"386",name:"テツノドクガ"},
-{id:"387",name:"テツノイバラ"},
-{id:"388",name:"セビエ"},
-{id:"389",name:"セゴール"},
-{id:"390",name:"セグレイブ"},
-{id:"391",name:"コレクレー"},
-{id:"392",name:"サーフゴー"},
-{id:"393",name:"チオンジェン"},
-{id:"394",name:"パオジアン"},
-{id:"395",name:"ディンルー"},
-{id:"396",name:"イーユイ"},
-{id:"397",name:"トドロクツキ"},
-{id:"398",name:"テツノブジン"},
-{id:"399",name:"コライドン"}
+            {id:"001",name:"ニャオハ"},{id:"002",name:"ニャローテ"},{id:"003",name:"マスカーニャ"},
+            {id:"046",name:"ルリリ"},{id:"399",name:"コライドン"}
         ];
 
         let listeners = [];
@@ -694,13 +315,16 @@
                 const req = getRequiredChars(p.name);
                 return Object.keys(req).every(c => (stock[c] || 0) >= req[c]);
             });
+            // レンダー部分のHTML構造を変更（ボタンを右に）
             document.getElementById('grid-unlocked').innerHTML = unlocked.map(p => `
-                <div class="pokemon-entry">No.${p.id} ${p.name}
+                <div class="pokemon-entry">
+                    <div class="p-name-box">${p.name}</div>
                     <div class="p-btn btn-plus" onclick="consume('${p.id}')">＋</div>
                 </div>
             `).join('');
             document.getElementById('grid-obtained').innerHTML = obtainedPokemon.map(p => `
-                <div class="pokemon-entry">No.${p.id} ${p.name}
+                <div class="pokemon-entry">
+                    <div class="p-name-box">${p.name}</div>
                     <div class="p-btn btn-minus" onclick="refund('${p.id}')">－</div>
                 </div>
             `).join('');
@@ -709,4 +333,3 @@
 </script>
 </body>
 </html>
-
