@@ -26,27 +26,27 @@
             width: calc(100vw / 11); max-width: 40px; height: 45px; 
             border: 1px solid var(--main-blue); display: flex; align-items: center; border-radius: 4px; overflow: hidden; background-color: #fff; 
         }
+        .column div:first-child { position: sticky; top: 0; z-index: 10; }
+
         .char-cell.empty { border: none; background: none; }
         .char-name { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000; }
         .char-count { width: 14px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; border-left: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.05); }
 
-        .content { padding-bottom: 220px; } 
+        .content { padding-bottom: 80px; } /* 下部メニューが閉じている時の余白 */
 
-        /* セクションヘッダー（クリック可能） */
         .section-header { 
             display: flex; align-items: center; 
             margin: 15px 0 8px 0; 
             cursor: pointer; 
             background: var(--dark-gray); 
             color: #fff; 
-            padding: 6px 12px; 
-            border-radius: 4px; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
             border: 1px solid #fff; 
             width: fit-content;
             user-select: none;
         }
-        .section-header:active { opacity: 0.8; }
-        .toggle-icon { margin-right: 8px; font-size: 12px; display: inline-block; width: 15px; }
+        .toggle-icon { margin-right: 8px; font-size: 12px; width: 15px; display: inline-block; }
         .section-title { font-size: 14px; }
 
         .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -62,16 +62,19 @@
         .listener-name { font-size: 12px; }
         .del-btn { position: absolute; top: -8px; right: -8px; background: #000; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
-        .bottom-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; border-top: 3px solid var(--dark-gray); z-index: 2000; border-radius: 15px 15px 0 0; }
+        /* --- 下部コントロールメニューの調整 --- */
+        .bottom-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 3px solid var(--dark-gray); z-index: 2000; border-radius: 15px 15px 0 0; box-shadow: 0 -5px 10px rgba(0,0,0,0.1); }
+        .bottom-header { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; font-size: 14px; background: #f8f8f8; border-radius: 12px 12px 0 0; }
+        .bottom-body { padding: 10px 15px 15px 15px; display: block; } /* 最初は表示 */
+
         .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
         @media (min-width: 400px) { .input-row { flex-direction: row; } }
 
         input[type="text"] { padding: 12px; border-radius: 8px; border: 2px solid var(--dark-gray); font-size: 16px; flex: 1; background: #f9f9f9; width: 100%; }
         .add-btn { background: var(--main-red); color: white; border: 2px solid var(--dark-gray); padding: 12px; cursor: pointer; border-radius: 8px; font-size: 16px; width: 100%; }
-        @media (min-width: 400px) { .add-btn { width: auto; min-width: 80px; } }
+        .reset-btn { background: #f0f0f0; color: #999; border: 1px solid #ccc; padding: 10px; cursor: pointer; border-radius: 6px; font-size: 12px; width: 100%; margin-top: 5px; }
 
-        .reset-btn { background: #eee; color: #666; border: 1px solid #ccc; padding: 8px; cursor: pointer; border-radius: 6px; font-size: 11px; width: 100%; }
-
+        /* カウントカラー */
         .c0 { background-color: #ffffff !important; }
         .c1 { background-color: #ffcccc !important; }
         .c2 { background-color: #ff9999 !important; }
@@ -92,37 +95,38 @@
         
         <div class="content">
             <div class="section-header" onclick="toggleSection('grid-unlocked', this)">
-                <span class="toggle-icon">▼</span>
-                <span class="section-title">✨ 仲間に誘える</span>
+                <span class="toggle-icon">▼</span><span class="section-title">✨ 仲間に誘える</span>
             </div>
             <div id="grid-unlocked" class="grid-container"></div>
             
             <div class="section-header" onclick="toggleSection('grid-obtained', this)">
-                <span class="toggle-icon">▼</span>
-                <span class="section-title">⚔️ 連れていけるポケモン</span>
+                <span class="toggle-icon">▼</span><span class="section-title">⚔️ 連れていけるポケモン</span>
             </div>
             <div id="grid-obtained" class="grid-container"></div>
             
             <div class="section-header" onclick="toggleSection('listener-list', this)">
-                <span class="toggle-icon">▼</span>
-                <span class="section-title">💬 本日のリスナー様</span>
+                <span class="toggle-icon">▼</span><span class="section-title">💬 本日のリスナー様</span>
             </div>
             <div id="listener-list"></div>
         </div>
     </div>
 
     <div class="bottom-controls">
-        <div class="input-row">
-            <input type="text" id="in-name" placeholder="名前">
-            <input type="text" id="in-ruby" placeholder="よみがな">
-            <button class="add-btn" onclick="addListener()">追加</button>
+        <div class="bottom-header" onclick="toggleBottomMenu(this)">
+            <span class="toggle-icon">▼</span><span>入力メニュー</span>
         </div>
-        <button class="reset-btn" onclick="allReset()">データをリセットする</button>
+        <div id="bottom-menu-body" class="bottom-body">
+            <div class="input-row">
+                <input type="text" id="in-name" placeholder="名前">
+                <input type="text" id="in-ruby" placeholder="よみがな">
+                <button class="add-btn" onclick="addListener()">追加</button>
+            </div>
+            <button class="reset-btn" onclick="allReset()">全データをリセットする</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // Firebase設定
     const firebaseConfig = {
         apiKey: "AIzaSyDBwTBNCz5N2SZLqT3qJz2kNUFMF2F72LY",
         authDomain: "pokemonsvcounteron-line.firebaseapp.com",
@@ -134,11 +138,9 @@
         measurementId: "G-GVRWH35HF6"
     };
 
-    // セクションの表示切り替え（アイコン連動）
     function toggleSection(contentId, headerEl) {
         const content = document.getElementById(contentId);
         const icon = headerEl.querySelector('.toggle-icon');
-        
         if (content.style.display === 'none') {
             content.style.display = (contentId.includes('grid') ? 'grid' : 'flex');
             icon.innerText = '▼';
@@ -148,13 +150,29 @@
         }
     }
 
+    // 下部メニュー専用の開閉関数
+    function toggleBottomMenu(headerEl) {
+        const body = document.getElementById('bottom-menu-body');
+        const icon = headerEl.querySelector('.toggle-icon');
+        const contentArea = document.querySelector('.content');
+
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            icon.innerText = '▼';
+            contentArea.style.paddingBottom = '220px'; // 開いた時の余白
+        } else {
+            body.style.display = 'none';
+            icon.innerText = '▶';
+            contentArea.style.paddingBottom = '80px'; // 閉じた時の余白
+        }
+    }
+
     function initApp() {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ポケモンデータ
         const paldeaDex = [
-       {id:"001",name:"ニャオハ"},
+      {id:"001",name:"ニャオハ"},
 {id:"002",name:"ニャローテ"},
 {id:"003",name:"マスカーニャ"},
 {id:"004",name:"ホゲータ"},
@@ -609,7 +627,7 @@
         };
 
         window.allReset = function() {
-            if(confirm("全リセットしますか？")) {
+            if(confirm("【警告】全てのデータを消去しますか？")) {
                 listeners = []; obtainedPokemon = []; syncToFirebase();
             }
         };
