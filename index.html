@@ -19,6 +19,7 @@
 
         .main-container { width: 100%; max-width: 450px; margin: 0 auto; padding: 10px; }
 
+        /* 五十音表：すべての固定（sticky）を解除 */
         .header-area { background-color: var(--bg-color); padding: 5px 0 15px 0; }
         .aiueo-container { display: flex; flex-direction: row-reverse; gap: 1px; justify-content: center; }
         .column { display: flex; flex-direction: column; gap: 1px; }
@@ -26,13 +27,15 @@
             width: calc(100vw / 11); max-width: 40px; height: 45px; 
             border: 1px solid var(--main-blue); display: flex; align-items: center; border-radius: 4px; overflow: hidden; background-color: #fff; 
         }
-        .column div:first-child { position: sticky; top: 0; z-index: 10; }
+        /* sticky設定を完全に削除 */
+        .column div:first-child { position: static; } 
 
         .char-cell.empty { border: none; background: none; }
         .char-name { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000; }
         .char-count { width: 14px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; border-left: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.05); }
 
-        .content { padding-bottom: 80px; } 
+        /* コンテンツエリア：初期余白を設定（JSで動的に変化させます） */
+        .content { padding-bottom: 220px; transition: padding-bottom 0.3s ease; } 
 
         .section-header { 
             display: flex; align-items: center; 
@@ -62,17 +65,15 @@
         .listener-name { font-size: 12px; }
         .del-btn { position: absolute; top: -8px; right: -8px; background: #000; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
-        /* --- 入力エリアのレスポンシブ修正 --- */
+        /* 入力メニューエリア */
         .bottom-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 3px solid var(--dark-gray); z-index: 2000; border-radius: 15px 15px 0 0; box-shadow: 0 -5px 10px rgba(0,0,0,0.1); }
         .bottom-header { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; font-size: 14px; background: #f8f8f8; border-radius: 12px 12px 0 0; }
-        .bottom-body { padding: 10px 15px 15px 15px; }
+        .bottom-body { padding: 10px 15px 15px 15px; display: block; }
 
-        /* スマホ用（デフォルト）：縦並び */
         .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
         input[type="text"] { padding: 12px; border-radius: 8px; border: 2px solid var(--dark-gray); font-size: 16px; background: #f9f9f9; width: 100%; }
         .add-btn { background: var(--main-red); color: white; border: 2px solid var(--dark-gray); padding: 12px; cursor: pointer; border-radius: 8px; font-size: 16px; width: 100%; }
 
-        /* PC・タブレット用：横並び */
         @media (min-width: 480px) {
             .input-row { flex-direction: row; align-items: center; }
             input[type="text"] { flex: 2; padding: 8px; }
@@ -100,7 +101,7 @@
             <div id="aiueo-table" class="aiueo-container"></div>
         </div>
         
-        <div class="content">
+        <div class="content" id="scroll-content">
             <div class="section-header" onclick="toggleSection('grid-unlocked', this)">
                 <span class="toggle-icon">▼</span><span class="section-title">✨ 仲間に誘える</span>
             </div>
@@ -118,7 +119,7 @@
         </div>
     </div>
 
-    <div class="bottom-controls">
+    <div class="bottom-controls" id="bottom-panel">
         <div class="bottom-header" onclick="toggleBottomMenu(this)">
             <span class="toggle-icon">▼</span><span>入力メニュー</span>
         </div>
@@ -157,19 +158,29 @@
         }
     }
 
+    // 入力メニュー開閉時に余白を調整する
     function toggleBottomMenu(headerEl) {
         const body = document.getElementById('bottom-menu-body');
         const icon = headerEl.querySelector('.toggle-icon');
-        const contentArea = document.querySelector('.content');
+        const contentArea = document.getElementById('scroll-content');
+        const bottomPanel = document.getElementById('bottom-panel');
 
         if (body.style.display === 'none') {
             body.style.display = 'block';
             icon.innerText = '▼';
-            contentArea.style.paddingBottom = '220px';
+            // メニューの高さを計算して余白を設定
+            setTimeout(() => {
+                const height = bottomPanel.offsetHeight;
+                contentArea.style.paddingBottom = height + 20 + 'px';
+            }, 10);
         } else {
             body.style.display = 'none';
             icon.innerText = '▶';
-            contentArea.style.paddingBottom = '80px';
+            // メニューが閉じた時のヘッダー分の余白
+            setTimeout(() => {
+                const height = bottomPanel.offsetHeight;
+                contentArea.style.paddingBottom = height + 20 + 'px';
+            }, 10);
         }
     }
 
