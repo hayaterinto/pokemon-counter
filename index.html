@@ -19,8 +19,7 @@
 
         .main-container { width: 100%; max-width: 450px; margin: 0 auto; padding: 10px; }
 
-        /* 五十音表 */
-        .sticky-header { position: sticky; top: 0; background-color: var(--bg-color); padding: 5px 0 10px 0; z-index: 1000; }
+        .header-area { background-color: var(--bg-color); padding: 5px 0 15px 0; }
         .aiueo-container { display: flex; flex-direction: row-reverse; gap: 1px; justify-content: center; }
         .column { display: flex; flex-direction: column; gap: 1px; }
         .char-cell { 
@@ -31,9 +30,13 @@
         .char-name { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000; }
         .char-count { width: 14px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; border-left: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.05); }
 
-        .content { padding-bottom: 200px; } 
-        .section-title { font-size: 14px; background: var(--dark-gray); color: #fff; padding: 6px 12px; border-radius: 4px; margin: 15px 0 8px 0; width: fit-content; border: 1px solid #fff; }
-        
+        .content { padding-bottom: 220px; } 
+
+        /* セクションヘッダー調整 */
+        .section-header { display: flex; align-items: center; gap: 10px; margin: 15px 0 8px 0; }
+        .section-title { font-size: 14px; background: var(--dark-gray); color: #fff; padding: 6px 12px; border-radius: 4px; border: 1px solid #fff; width: fit-content; }
+        .toggle-btn { font-size: 10px; background: #fff; border: 1px solid var(--dark-gray); padding: 2px 8px; border-radius: 4px; cursor: pointer; }
+
         .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
         .pokemon-entry { background: #fff; border: 1px solid var(--main-blue); padding: 8px 4px; font-size: 11px; text-align: center; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 80px; }
         
@@ -47,30 +50,19 @@
         .listener-name { font-size: 12px; }
         .del-btn { position: absolute; top: -8px; right: -8px; background: #000; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
 
-        /* --- 入力欄のレスポンシブ修正 --- */
         .bottom-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px; border-top: 3px solid var(--dark-gray); z-index: 2000; border-radius: 15px 15px 0 0; }
-        
-        /* スマホでは縦に並べる設定 */
         .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
-        
-        /* PCや幅広画面では横に並べる */
-        @media (min-width: 400px) {
-            .input-row { flex-direction: row; }
-        }
+        @media (min-width: 400px) { .input-row { flex-direction: row; } }
 
         input[type="text"] { padding: 12px; border-radius: 8px; border: 2px solid var(--dark-gray); font-size: 16px; flex: 1; background: #f9f9f9; width: 100%; }
         .add-btn { background: var(--main-red); color: white; border: 2px solid var(--dark-gray); padding: 12px; cursor: pointer; border-radius: 8px; font-size: 16px; width: 100%; }
-        
-        @media (min-width: 400px) {
-            .add-btn { width: auto; min-width: 80px; }
-        }
+        @media (min-width: 400px) { .add-btn { width: auto; min-width: 80px; } }
 
         .reset-btn { background: #eee; color: #666; border: 1px solid #ccc; padding: 8px; cursor: pointer; border-radius: 6px; font-size: 11px; width: 100%; }
 
-        /* カウントカラー */
         .c0 { background-color: #ffffff !important; }
-        .c1 { background-color: #ffcccc !important; color: #000 !important; }
-        .c2 { background-color: #ff9999 !important; color: #000 !important; }
+        .c1 { background-color: #ffcccc !important; }
+        .c2 { background-color: #ff9999 !important; }
         .c3 { background-color: #ff6666 !important; color: #fff !important; }
         .c4 { background-color: #ff3333 !important; color: #fff !important; }
         .c5 { background-color: #cc0000 !important; color: #fff !important; }
@@ -82,18 +74,27 @@
 
 <div id="main-app">
     <div class="main-container">
-        <div class="sticky-header">
+        <div class="header-area">
             <div id="aiueo-table" class="aiueo-container"></div>
         </div>
         
         <div class="content">
-            <div class="section-title">✨ 仲間に誘える</div>
+            <div class="section-header">
+                <div class="section-title">✨ 仲間に誘える</div>
+                <button class="toggle-btn" onclick="toggleSection('grid-unlocked')">表示/非表示</button>
+            </div>
             <div id="grid-unlocked" class="grid-container"></div>
             
-            <div class="section-title">⚔️ 攻撃できるポケモン</div>
+            <div class="section-header">
+                <div class="section-title">⚔️ 連れていけるポケモン</div>
+                <button class="toggle-btn" onclick="toggleSection('grid-obtained')">表示/非表示</button>
+            </div>
             <div id="grid-obtained" class="grid-container"></div>
             
-            <div class="section-title">💬 本日のリスナー様</div>
+            <div class="section-header">
+                <div class="section-title">💬 本日のリスナー様</div>
+                <button class="toggle-btn" onclick="toggleSection('listener-list')">表示/非表示</button>
+            </div>
             <div id="listener-list"></div>
         </div>
     </div>
@@ -109,22 +110,28 @@
 </div>
 
 <script>
-    // --- 【設定】Firebaseの情報をここに貼り付け ---
+    // Firebase設定（入力済み）
     const firebaseConfig = {
- apiKey: "AIzaSyDBwTBNCz5N2SZLqT3qJz2kNUFMF2F72LY",
-  authDomain: "pokemonsvcounteron-line.firebaseapp.com",
-  databaseURL: "https://pokemonsvcounteron-line-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "pokemonsvcounteron-line",
-  storageBucket: "pokemonsvcounteron-line.firebasestorage.app",
-  messagingSenderId: "299560616558",
-  appId: "1:299560616558:web:1169418fef8d0099041c7f",
-  measurementId: "G-GVRWH35HF6"
+        apiKey: "AIzaSyDBwTBNCz5N2SZLqT3qJz2kNUFMF2F72LY",
+        authDomain: "pokemonsvcounteron-line.firebaseapp.com",
+        databaseURL: "https://pokemonsvcounteron-line-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "pokemonsvcounteron-line",
+        storageBucket: "pokemonsvcounteron-line.firebasestorage.app",
+        messagingSenderId: "299560616558",
+        appId: "1:299560616558:web:1169418fef8d0099041c7f",
+        measurementId: "G-GVRWH35HF6"
     };
+
+    function toggleSection(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'none') ? (id.includes('grid') ? 'grid' : 'flex') : 'none';
+    }
 
     function initApp() {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // テスト用データ（ここに本番用データを追加してください）
         const paldeaDex = [
             {id:"001",name:"ニャオハ"},{id:"002",name:"ニャローテ"},{id:"003",name:"マスカーニャ"},
             {id:"046",name:"ルリリ"},{id:"399",name:"コライドン"}
