@@ -3,148 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pokemon Adventure Counter</title>
+    <title>Pokemon Adventure Counter - Full Dex</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
-        :root {
-            --bg-color: #00ff00;
-            --main-blue: #007bff;
-            --main-red: #ff4d4d;
-            --dark-gray: #222;
-        }
-
+        :root { --bg-color: #00ff00; --main-blue: #007bff; --main-red: #ff4d4d; --dark-gray: #222; }
         body { background-color: var(--bg-color); font-family: sans-serif; margin: 0; padding: 0; touch-action: manipulation; }
         * { font-weight: 900 !important; box-sizing: border-box; }
-
         .main-container { width: 100%; max-width: 450px; margin: 0 auto; padding: 10px; }
-
         .header-area { background-color: var(--bg-color); padding: 5px 0 15px 0; }
         .aiueo-container { display: flex; flex-direction: row-reverse; gap: 1px; justify-content: center; }
         .column { display: flex; flex-direction: column; gap: 1px; }
-        .char-cell { 
-            width: calc(100vw / 11); max-width: 40px; height: 45px; 
-            border: 1px solid var(--main-blue); display: flex; align-items: center; border-radius: 4px; overflow: hidden; background-color: #fff; 
-        }
+        .char-cell { width: calc(100vw / 11); max-width: 40px; height: 45px; border: 1px solid var(--main-blue); display: flex; align-items: center; border-radius: 4px; overflow: hidden; background-color: #fff; }
         .char-cell.empty { border: none; background: none; }
         .char-name { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000; }
         .char-count { width: 14px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; border-left: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.05); }
-
         .content { padding-bottom: 220px; transition: padding-bottom 0.3s ease; } 
-
         .section-header-row { display: flex; align-items: center; justify-content: space-between; margin: 15px 0 8px 0; }
-        .section-header { 
-            display: flex; align-items: center; 
-            cursor: pointer; 
-            background: var(--dark-gray); 
-            color: #fff; 
-            padding: 8px 12px; 
-            border-radius: 6px; 
-            border: 1px solid #fff; 
-            user-select: none;
-        }
+        .section-header { display: flex; align-items: center; cursor: pointer; background: var(--dark-gray); color: #fff; padding: 8px 12px; border-radius: 6px; border: 1px solid #fff; user-select: none; }
         .toggle-icon { margin-right: 8px; font-size: 12px; width: 15px; display: inline-block; }
         .section-title { font-size: 14px; }
-
-        .sort-btn {
-            background: #fff; border: 1.5px solid var(--dark-gray); border-radius: 4px;
-            font-size: 10px; padding: 4px 8px; cursor: pointer; height: 32px; min-width: 65px;
-        }
+        .sort-btn { background: #fff; border: 1.5px solid var(--dark-gray); border-radius: 4px; font-size: 10px; padding: 4px 8px; cursor: pointer; height: 32px; min-width: 65px; }
         .sort-btn.active { background: var(--dark-gray); color: #fff; }
-
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
         @media (min-width: 400px) { .grid-container { grid-template-columns: repeat(3, 1fr); } }
-
-        .pokemon-entry { 
-            background: #fff; border: 1.5px solid var(--main-blue); padding: 4px 6px; border-radius: 6px; 
-            display: flex; align-items: center; justify-content: space-between; min-height: 44px; 
-        }
+        .pokemon-entry { background: #fff; border: 1.5px solid var(--main-blue); padding: 4px 6px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
         .p-info-box { flex: 1; text-align: left; padding-right: 4px; display: flex; flex-direction: column; }
         .p-no { font-size: 8px; color: #666; margin-bottom: -2px; }
         .p-name { font-size: 11px; color: #000; word-break: break-all; }
-
-        .p-btn { 
-            cursor: pointer; border: 1.5px solid var(--dark-gray); border-radius: 4px; 
-            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; 
-            font-size: 16px; flex-shrink: 0; 
-        }
+        .p-btn { cursor: pointer; border: 1.5px solid var(--dark-gray); border-radius: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
         .btn-plus { background: var(--main-red); color: #fff; }
         .btn-minus { background: #4d94ff; color: #fff; }
-
         #listener-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px 0; }
         .listener-tag { background: #fff; border: 1px solid var(--dark-gray); padding: 6px 10px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; position: relative; min-width: 60px; }
         .listener-ruby { font-size: 8px; color: #666; }
         .listener-name { font-size: 12px; }
         .del-btn { position: absolute; top: -8px; right: -8px; background: #000; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
-
         .bottom-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 3px solid var(--dark-gray); z-index: 2000; border-radius: 15px 15px 0 0; box-shadow: 0 -5px 10px rgba(0,0,0,0.1); }
         .bottom-header { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; font-size: 14px; background: #f8f8f8; border-radius: 12px 12px 0 0; }
         .bottom-body { padding: 10px 15px 15px 15px; display: block; }
         .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
         input[type="text"] { padding: 12px; border-radius: 8px; border: 2px solid var(--dark-gray); font-size: 16px; background: #f9f9f9; width: 100%; }
         .add-btn { background: var(--main-red); color: white; border: 2px solid var(--dark-gray); padding: 12px; cursor: pointer; border-radius: 8px; font-size: 16px; width: 100%; }
-
-        @media (min-width: 480px) {
-            .input-row { flex-direction: row; align-items: center; }
-            input[type="text"] { flex: 2; padding: 8px; }
-            .add-btn { flex: 1; padding: 8px; width: auto; }
-        }
         .reset-btn { background: #f0f0f0; color: #999; border: 1px solid #ccc; padding: 10px; cursor: pointer; border-radius: 6px; font-size: 12px; width: 100%; margin-top: 5px; }
-
-        .c0 { background-color: #ffffff !important; }
-        .c1 { background-color: #ffcccc !important; }
-        .c2 { background-color: #ff9999 !important; }
-        .c3 { background-color: #ff6666 !important; color: #fff !important; }
-        .c4 { background-color: #ff3333 !important; color: #fff !important; }
-        .c5 { background-color: #cc0000 !important; color: #fff !important; }
-        .c6 { background-color: #990000 !important; color: #fff !important; }
-        .c7 { background-color: #660000 !important; color: #fff !important; }
+        .c0 { background-color: #ffffff !important; } .c1 { background-color: #ffcccc !important; } .c2 { background-color: #ff9999 !important; } .c3 { background-color: #ff6666 !important; color: #fff !important; } .c4 { background-color: #ff3333 !important; color: #fff !important; } .c5 { background-color: #cc0000 !important; color: #fff !important; } .c6 { background-color: #990000 !important; color: #fff !important; } .c7 { background-color: #660000 !important; color: #fff !important; }
     </style>
 </head>
 <body onload="initApp()">
 
 <div id="main-app">
     <div class="main-container">
-        <div class="header-area">
-            <div id="aiueo-table" class="aiueo-container"></div>
-        </div>
-        
+        <div class="header-area"><div id="aiueo-table" class="aiueo-container"></div></div>
         <div class="content" id="scroll-content">
             <div class="section-header-row">
-                <div class="section-header" onclick="toggleSection('grid-unlocked', this)">
-                    <span class="toggle-icon">▼</span><span class="section-title">✨ 仲間に誘える</span>
-                </div>
-                <button id="sort-unlocked-btn" class="sort-btn" onclick="toggleUnlockedSort()">図鑑順</button>
+                <div class="section-header" onclick="toggleSection('grid-unlocked', this)"><span class="toggle-icon">▼</span><span class="section-title">✨ 仲間に誘える</span></div>
+                <button id="sort-unlocked-btn" class="sort-btn" onclick="toggleUnlockedSort()">解放順</button>
             </div>
             <div id="grid-unlocked" class="grid-container"></div>
-            
             <div class="section-header-row">
-                <div class="section-header" onclick="toggleSection('grid-obtained', this)">
-                    <span class="toggle-icon">▼</span><span class="section-title">⚔️ 攻撃技を出せるポケモン</span>
-                </div>
+                <div class="section-header" onclick="toggleSection('grid-obtained', this)"><span class="toggle-icon">▼</span><span class="section-title">⚔️ 攻撃できるポケモン</span></div>
                 <button id="sort-obtained-btn" class="sort-btn" onclick="toggleObtainedSort()">解放順</button>
             </div>
             <div id="grid-obtained" class="grid-container"></div>
-            
             <div class="section-header-row">
-                <div class="section-header" onclick="toggleSection('listener-list', this)">
-                    <span class="toggle-icon">▼</span><span class="section-title">💬 本日のリスナー様</span>
-                </div>
+                <div class="section-header" onclick="toggleSection('listener-list', this)"><span class="toggle-icon">▼</span><span class="section-title">💬 本日のリスナー様</span></div>
             </div>
             <div id="listener-list"></div>
         </div>
     </div>
-
     <div class="bottom-controls" id="bottom-panel">
-        <div class="bottom-header" onclick="toggleBottomMenu(this)">
-            <span class="toggle-icon">▼</span><span>入力メニュー</span>
-        </div>
+        <div class="bottom-header" onclick="toggleBottomMenu(this)"><span class="toggle-icon">▼</span><span>入力メニュー</span></div>
         <div id="bottom-menu-body" class="bottom-body">
-            <div class="input-row">
-                <input type="text" id="in-name" placeholder="名前">
-                <input type="text" id="in-ruby" placeholder="よみがな">
-                <button class="add-btn" onclick="addListener()">追加</button>
-            </div>
+            <div class="input-row"><input type="text" id="in-name" placeholder="名前"><input type="text" id="in-ruby" placeholder="よみがな"><button class="add-btn" onclick="addListener()">追加</button></div>
             <button class="reset-btn" onclick="allReset()">全データをリセットする</button>
         </div>
     </div>
@@ -162,61 +92,13 @@
         measurementId: "G-GVRWH35HF6"
     };
 
-    let unlockedSortMode = 'id'; // 'id' or 'release'
-    let obtainedSortMode = 'release'; // 'release' or 'id'
+    let unlockedSortMode = 'release'; 
+    let obtainedSortMode = 'release';
+    let pokemonUnlockTimes = {};
 
-    function toggleUnlockedSort() {
-        const btn = document.getElementById('sort-unlocked-btn');
-        unlockedSortMode = (unlockedSortMode === 'id' ? 'release' : 'id');
-        btn.innerText = (unlockedSortMode === 'id' ? '図鑑順' : '解放順');
-        btn.classList.toggle('active', unlockedSortMode === 'release');
-        updateAll();
-    }
-
-    function toggleObtainedSort() {
-        const btn = document.getElementById('sort-obtained-btn');
-        obtainedSortMode = (obtainedSortMode === 'release' ? 'id' : 'release');
-        btn.innerText = (obtainedSortMode === 'release' ? '解放順' : '図鑑順');
-        btn.classList.toggle('active', obtainedSortMode === 'id');
-        updateAll();
-    }
-
-    function toggleSection(contentId, headerEl) {
-        const content = document.getElementById(contentId);
-        const icon = headerEl.querySelector('.toggle-icon');
-        if (content.style.display === 'none') {
-            content.style.display = (contentId.includes('grid') ? 'grid' : 'flex');
-            icon.innerText = '▼';
-        } else {
-            content.style.display = 'none';
-            icon.innerText = '▶';
-        }
-    }
-
-    function toggleBottomMenu(headerEl) {
-        const body = document.getElementById('bottom-menu-body');
-        const icon = headerEl.querySelector('.toggle-icon');
-        const contentArea = document.getElementById('scroll-content');
-        const bottomPanel = document.getElementById('bottom-panel');
-
-        if (body.style.display === 'none') {
-            body.style.display = 'block';
-            icon.innerText = '▼';
-            setTimeout(() => { contentArea.style.paddingBottom = bottomPanel.offsetHeight + 20 + 'px'; }, 10);
-        } else {
-            body.style.display = 'none';
-            icon.innerText = '▶';
-            setTimeout(() => { contentArea.style.paddingBottom = bottomPanel.offsetHeight + 20 + 'px'; }, 10);
-        }
-    }
-
-    function initApp() {
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // テストデータ
-        const paldeaDex = [
-     {id:"001",name:"ニャオハ"},
+    // --- パルデア図鑑400種データ ---
+    const paldeaDex = [
+            {id:"001",name:"ニャオハ"},
 {id:"002",name:"ニャローテ"},
 {id:"003",name:"マスカーニャ"},
 {id:"004",name:"ホゲータ"},
@@ -616,17 +498,51 @@
 {id:"398",name:"テツノブジン"},
 {id:"399",name:"コライドン"}
 
-        ];
+    ];
 
+    function toggleUnlockedSort() {
+        const btn = document.getElementById('sort-unlocked-btn');
+        unlockedSortMode = (unlockedSortMode === 'id' ? 'release' : 'id');
+        btn.innerText = (unlockedSortMode === 'id' ? '図鑑順' : '解放順');
+        btn.classList.toggle('active', unlockedSortMode === 'release');
+        updateAll();
+    }
+
+    function toggleObtainedSort() {
+        const btn = document.getElementById('sort-obtained-btn');
+        obtainedSortMode = (obtainedSortMode === 'release' ? 'id' : 'release');
+        btn.innerText = (obtainedSortMode === 'release' ? '解放順' : '図鑑順');
+        btn.classList.toggle('active', obtainedSortMode === 'id');
+        updateAll();
+    }
+
+    function toggleSection(contentId, headerEl) {
+        const content = document.getElementById(contentId);
+        const icon = headerEl.querySelector('.toggle-icon');
+        content.style.display = (content.style.display === 'none') ? (contentId.includes('grid') ? 'grid' : 'flex') : 'none';
+        icon.innerText = (content.style.display === 'none') ? '▶' : '▼';
+    }
+
+    function toggleBottomMenu(headerEl) {
+        const body = document.getElementById('bottom-menu-body');
+        const icon = headerEl.querySelector('.toggle-icon');
+        const contentArea = document.getElementById('scroll-content');
+        const bottomPanel = document.getElementById('bottom-panel');
+        body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+        icon.innerText = (body.style.display === 'none') ? '▶' : '▼';
+        setTimeout(() => { contentArea.style.paddingBottom = bottomPanel.offsetHeight + 20 + 'px'; }, 10);
+    }
+
+    function initApp() {
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         let listeners = [];
         let obtainedPokemon = [];
 
         const columns = [["あ","い","う","え","お"],["か","き","く","け","こ"],["さ","し","す","せ","そ"],["た","ち","つ","て","と"],["な","に","ぬ","ね","の"],["は","ひ","ふ","へ","ほ"],["ま","み","む","め","も"],["や","","ゆ","","よ"],["ら","り","る","れ","ろ"],["わ","","","","ん"]];
         const table = document.getElementById('aiueo-table');
-        table.innerHTML = "";
         columns.forEach(col => {
-            const colDiv = document.createElement('div');
-            colDiv.className = 'column';
+            const colDiv = document.createElement('div'); colDiv.className = 'column';
             col.forEach(char => {
                 const cell = document.createElement('div');
                 if (!char) { cell.className = 'char-cell empty'; }
@@ -643,47 +559,24 @@
             updateAll();
         });
 
-        function syncToFirebase() {
-            db.ref('pokeSyncData').set({ listeners: listeners, obtainedPokemon: obtainedPokemon });
-        }
+        function syncToFirebase() { db.ref('pokeSyncData').set({ listeners, obtainedPokemon }); }
 
         window.addListener = function() {
             const nEl = document.getElementById('in-name'), rEl = document.getElementById('in-ruby');
             if (!nEl.value) return;
-            // リスナー追加時もタイムスタンプを付与して「いつ解放されたか」を判別可能にする
-            listeners.push({ 
-                id: Date.now(), 
-                display: nEl.value, 
-                ruby: rEl.value || nEl.value, 
-                seion: toSeion(rEl.value || nEl.value),
-                createdAt: Date.now() 
-            });
+            listeners.push({ id: Date.now(), display: nEl.value, ruby: rEl.value || nEl.value, seion: toSeion(rEl.value || nEl.value) });
             nEl.value = ""; rEl.value = "";
             syncToFirebase();
         };
 
-        window.removeListener = function(id) {
-            listeners = listeners.filter(l => l.id !== id);
-            syncToFirebase();
-        };
-
+        window.removeListener = function(id) { listeners = listeners.filter(l => l.id !== id); syncToFirebase(); };
         window.consume = function(id) {
             const p = paldeaDex.find(p => p.id === id);
-            const newEntry = {...p, timestamp: Date.now()};
-            obtainedPokemon.unshift(newEntry);
+            obtainedPokemon.unshift({...p, timestamp: Date.now()});
             syncToFirebase();
         };
-
-        window.refund = function(timestamp) {
-            obtainedPokemon = obtainedPokemon.filter(p => p.timestamp !== timestamp);
-            syncToFirebase();
-        };
-
-        window.allReset = function() {
-            if(confirm("【警告】全てのデータを消去しますか？")) {
-                listeners = []; obtainedPokemon = []; syncToFirebase();
-            }
-        };
+        window.refund = function(ts) { obtainedPokemon = obtainedPokemon.filter(p => p.timestamp !== ts); syncToFirebase(); };
+        window.allReset = function() { if(confirm("【警告】全データを消去しますか？")) { listeners = []; obtainedPokemon = []; syncToFirebase(); } };
 
         function toSeion(text) {
             const map = {'が':'か','ぎ':'き','ぐ':'く','げ':'け','ご':'こ','ざ':'さ','じ':'し','ず':'す','ぜ':'せ','ぞ':'そ','だ':'た','ぢ':'ち','づ':'つ','で':'て','ど':'と','ば':'は','び':'ひ','ぶ':'ふ','べ':'へ','ぼ':'ほ','ぱ':'は','ぴ':'ひ','ぷ':'ふ','ぺ':'へ','ぽ':'ほ','ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','ゃ':'や','ゅ':'ゆ','ょ':'よ','っ':'つ'};
@@ -698,70 +591,53 @@
         }
 
         window.updateAll = function() {
-            const totalStock = {};
-            listeners.forEach(l => { l.seion.split('').forEach(c => totalStock[c] = (totalStock[c] || 0) + 1); });
+            const stock = {};
+            listeners.forEach(l => { l.seion.split('').forEach(c => stock[c] = (stock[c] || 0) + 1); });
             obtainedPokemon.forEach(p => {
                 const req = getRequiredChars(p.name);
-                Object.keys(req).forEach(c => { totalStock[c] = (totalStock[c] || 0) - req[c]; });
+                Object.keys(req).forEach(c => { stock[c] = (stock[c] || 0) - req[c]; });
             });
             document.querySelectorAll('.char-cell:not(.empty)').forEach(cell => {
                 const char = cell.querySelector('.char-name').innerText;
-                const count = totalStock[char] || 0;
+                const count = stock[char] || 0;
                 cell.querySelector('.char-count').innerText = count;
-                cell.classList.remove('c0','c1','c2','c3','c4','c5','c6','c7');
-                cell.classList.add('c' + (count > 7 ? 7 : (count < 0 ? 0 : count)));
+                cell.className = 'char-cell c' + (count > 7 ? 7 : (count < 0 ? 0 : count));
             });
             document.getElementById('listener-list').innerHTML = listeners.map(l => `
                 <div class="listener-tag"><div class="del-btn" onclick="removeListener(${l.id})">×</div><div class="listener-ruby">${l.ruby}</div><div class="listener-name">${l.display}</div></div>
             `).join('');
-            renderPokemon(totalStock);
-        }
+            renderPokemon(stock);
+        };
 
         function getRequiredChars(name) {
-            const seion = toSeion(name);
-            const counts = {};
+            const seion = toSeion(name), counts = {};
             seion.split('').forEach(c => counts[c] = (counts[c] || 0) + 1);
             return counts;
         }
 
         function renderPokemon(stock) {
-            // 仲間に誘えるリストの選別
+            const now = Date.now();
             let unlocked = paldeaDex.filter(p => {
                 if (obtainedPokemon.find(op => op.id === p.id)) return false;
                 const req = getRequiredChars(p.name);
-                return Object.keys(req).every(c => (stock[c] || 0) >= req[c]);
+                const isPossible = Object.keys(req).every(c => (stock[c] || 0) >= req[c]);
+                if (isPossible && !pokemonUnlockTimes[p.id]) { pokemonUnlockTimes[p.id] = now; }
+                else if (!isPossible) { delete pokemonUnlockTimes[p.id]; }
+                return isPossible;
             });
 
-            // 仲間に誘えるリストのソート
-            if (unlockedSortMode === 'id') {
-                unlocked.sort((a,b) => a.id.localeCompare(b.id));
-            } else {
-                // 解放順（このツールでは現状、図鑑順でデータを持っているので、本来は「解放された瞬間」を記録する必要がありますが、
-                // 便宜上、逆順（新しい番号順）などで代用するか、ロジックを組む必要があります。
-                // ここではシンプルにIDの降順（新しいものが見つかりやすい）にしています。
-                unlocked.sort((a,b) => b.id.localeCompare(a.id)); 
-            }
+            if (unlockedSortMode === 'id') { unlocked.sort((a,b) => a.id.localeCompare(b.id)); }
+            else { unlocked.sort((a,b) => (pokemonUnlockTimes[b.id] || 0) - (pokemonUnlockTimes[a.id] || 0)); }
 
-            // 攻撃できるリストのソート
             let displayObtained = [...obtainedPokemon];
-            if (obtainedSortMode === 'id') {
-                displayObtained.sort((a,b) => a.id.localeCompare(b.id));
-            } else {
-                displayObtained.sort((a,b) => b.timestamp - a.timestamp);
-            }
+            if (obtainedSortMode === 'id') { displayObtained.sort((a,b) => a.id.localeCompare(b.id)); }
+            else { displayObtained.sort((a,b) => b.timestamp - a.timestamp); }
 
             document.getElementById('grid-unlocked').innerHTML = unlocked.map(p => `
-                <div class="pokemon-entry">
-                    <div class="p-info-box"><div class="p-no">No.${p.id}</div><div class="p-name">${p.name}</div></div>
-                    <div class="p-btn btn-plus" onclick="consume('${p.id}')">＋</div>
-                </div>
+                <div class="pokemon-entry"><div class="p-info-box"><div class="p-no">No.${p.id}</div><div class="p-name">${p.name}</div></div><div class="p-btn btn-plus" onclick="consume('${p.id}')">＋</div></div>
             `).join('');
-
             document.getElementById('grid-obtained').innerHTML = displayObtained.map(p => `
-                <div class="pokemon-entry">
-                    <div class="p-info-box"><div class="p-no">No.${p.id}</div><div class="p-name">${p.name}</div></div>
-                    <div class="p-btn btn-minus" onclick="refund(${p.timestamp})">－</div>
-                </div>
+                <div class="pokemon-entry"><div class="p-info-box"><div class="p-no">No.${p.id}</div><div class="p-name">${p.name}</div></div><div class="p-btn btn-minus" onclick="refund(${p.timestamp})">－</div></div>
             `).join('');
         }
     }
