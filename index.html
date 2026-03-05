@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pokemon Counter - Fixed Refund</title>
+    <title>Pokemon Counter - No Duplicate History</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
@@ -82,7 +82,7 @@
 <div class="bottom-controls">
     <div class="bottom-header" onclick="toggleBottomMenu()"><span>▼ 入力・履歴</span></div>
     <div id="bottom-menu-body" class="bottom-body">
-        <div style="font-size: 8px; color: #666;">履歴（タップで入力・×で消去）:</div>
+        <div style="font-size: 8px; color: #666;">履歴（タップで入力・×で個別に消去）:</div>
         <div id="history-list"></div>
         <div class="input-row">
             <input type="text" id="in-name" placeholder="名">
@@ -531,7 +531,6 @@
             if(i < 5) r1.appendChild(d); else r2.appendChild(d);
         });
 
-        // リアルタイム購読
         db.ref('pokeSyncData/listeners').on('value', s => { 
             const val = s.val() || {};
             listeners = Object.keys(val).map(k => ({...val[k], firebaseKey: k}));
@@ -544,7 +543,14 @@
         });
         db.ref('pokeSyncData/nameHistory').on('value', s => { 
             const val = s.val()||{};
-            nameHistory = Object.keys(val).map(k => ({...val[k], firebaseKey: k})); 
+            // ここでユニーク化して取得（念のため）
+            const list = Object.keys(val).map(k => ({...val[k], firebaseKey: k}));
+            const uniqueMap = new Map();
+            list.forEach(item => {
+                const key = item.display + "_" + item.ruby;
+                if(!uniqueMap.has(key)) uniqueMap.set(key, item);
+            });
+            nameHistory = Array.from(uniqueMap.values());
             updateUI(); 
         });
     }
@@ -584,24 +590,29 @@
 
     window.addListener = () => {
         const n = document.getElementById('in-name'), r = document.getElementById('in-ruby'); if(!n.value) return;
-        const data = { display: n.value, ruby: r.value || n.value, timestamp: Date.now() };
-        db.ref('pokeSyncData/listeners').push(data);
-        db.ref('pokeSyncData/nameHistory').push({ display: n.value, ruby: r.value || n.value });
+        const nameVal = n.value;
+        const rubyVal = r.value || n.value;
+
+        // リスナー追加（これは今の協力者なのでそのまま追加）
+        db.ref('pokeSyncData/listeners').push({ display: nameVal, ruby: rubyVal, timestamp: Date.now() });
+
+        // 履歴への重複追加をチェック
+        const isDuplicate = nameHistory.some(h => h.display === nameVal && h.ruby === rubyVal);
+        if(!isDuplicate) {
+            db.ref('pokeSyncData/nameHistory').push({ display: nameVal, ruby: rubyVal });
+        }
+        
         n.value = ""; r.value = "";
     };
 
     window.removeListener = (key) => db.ref('pokeSyncData/listeners/' + key).remove();
     window.deleteHistory = (key) => db.ref('pokeSyncData/nameHistory/' + key).remove();
     window.fillIn = (n, r) => { document.getElementById('in-name').value = n; document.getElementById('in-ruby').value = r; };
-
     window.consume = (id) => { 
         const p = paldeaDex.find(x=>x.id===id);
         db.ref('pokeSyncData/obtainedPokemon').push({...p, timestamp: Date.now()}); 
     };
-    window.refund = (key) => {
-        if(!key || key === 'undefined') return;
-        db.ref('pokeSyncData/obtainedPokemon/' + key).remove();
-    };
+    window.refund = (key) => db.ref('pokeSyncData/obtainedPokemon/' + key).remove();
 
     window.toggleSection = (id, el) => { const t = document.getElementById(id); const h = t.style.display==='none'; t.style.display = h ? (id.includes('grid')?'grid':'flex') : 'none'; el.querySelector('span').innerText = (h?'▼ ':'▶ ')+el.innerText.slice(2); };
     window.toggleBottomMenu = () => { const b = document.getElementById('bottom-menu-body'); b.style.display = b.style.display==='none'?'block':'none'; };
