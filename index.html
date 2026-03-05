@@ -3,87 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pokemon Adventure Counter - Exact Match Width</title>
+    <title>Pokemon Counter - Fixed Refund</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
         :root { 
-            --bg-color: #00ff00; 
-            --main-blue: #007bff; 
-            --main-red: #ff4d4d; 
-            --dark-gray: #222; 
-            /* 五十音セル5個分 + 隙間の合計幅 */
-            --cell-width: 52px;
-            --gap: 1px;
+            --bg-color: #00ff00; --main-blue: #007bff; --main-red: #ff4d4d; --dark-gray: #222; 
+            --cell-width: 52px; --gap: 1px;
             --total-width: calc((var(--cell-width) * 5) + (var(--gap) * 4));
         }
         body { background-color: var(--bg-color); font-family: sans-serif; margin: 0; padding: 0; touch-action: manipulation; }
         * { font-weight: 900 !important; box-sizing: border-box; }
         
-        /* 全体のコンテナを五十音の実効幅に限定 */
-        .main-container { 
-            width: var(--total-width); 
-            margin: 0 auto; 
-            padding: 5px 0;
-        }
+        .main-container { width: var(--total-width); margin: 0 auto; padding: 5px 0; }
         
         /* 五十音表 */
         .aiueo-block { display: flex; flex-direction: column; gap: var(--gap); margin-bottom: 5px; width: 100%; }
         .aiueo-row { display: flex; flex-direction: row-reverse; justify-content: center; gap: var(--gap); }
         .column { display: flex; flex-direction: column; gap: var(--gap); }
         .char-cell { 
-            width: var(--cell-width); 
-            height: 24px; /* 縦幅をさらに圧縮 */
-            border: 1px solid var(--main-blue); 
+            width: var(--cell-width); height: 24px; border: 1px solid var(--main-blue); 
             display: flex; align-items: center; border-radius: 1px; background-color: #fff; overflow: hidden;
         }
         .char-cell.empty { border: none; background: none; }
         .char-name { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; }
         .char-count { width: 12px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 8px; border-left: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.05); }
 
-        /* リストセクション：五十音表と1pxもズレない幅に設定 */
+        /* リスト */
         .content { width: 100%; padding-bottom: 220px; } 
         .section-header-row { display: flex; align-items: center; justify-content: space-between; margin: 5px 0 2px 0; width: 100%; }
-        .section-header { 
-            display: flex; align-items: center; background: var(--dark-gray); color: #fff; 
-            padding: 2px 6px; border-radius: 2px; font-size: 9px; flex: 1; margin-right: 3px; cursor: pointer;
-        }
+        .section-header { display: flex; align-items: center; background: var(--dark-gray); color: #fff; padding: 2px 6px; border-radius: 2px; font-size: 9px; flex: 1; margin-right: 3px; cursor: pointer; }
         .sort-btn { background: #fff; border: 1px solid var(--dark-gray); border-radius: 2px; font-size: 7px; padding: 1px; height: 18px; min-width: 45px; cursor: pointer; }
 
-        /* リスト内のグリッド（五十音の細さに合わせて列数を調整） */
         .grid-container { display: grid; gap: 2px; width: 100%; margin-bottom: 8px; }
-        #grid-obtained { grid-template-columns: repeat(2, 1fr); } /* 幅が狭いため2列に変更 */
-        #grid-unlocked { grid-template-columns: repeat(2, 1fr); } /* 幅が狭いため2列に変更 */
+        #grid-obtained, #grid-unlocked { grid-template-columns: repeat(2, 1fr); }
 
-        .pokemon-entry { 
-            background: #fff; border: 1px solid var(--main-blue); padding: 1px; 
-            border-radius: 2px; display: flex; flex-direction: row; align-items: center; height: 20px; 
-        }
+        .pokemon-entry { background: #fff; border: 1px solid var(--main-blue); padding: 1px; border-radius: 2px; display: flex; flex-direction: row; align-items: center; height: 20px; }
         .p-name { font-size: 8px; color: #000; flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .p-btn { cursor: pointer; width: 20px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: none; }
         .btn-plus { background: var(--main-red); color: #fff; }
         .btn-minus { background: #4d94ff; color: #fff; }
 
-        /* リスナーエリア */
-        #listener-column { display: none; flex-wrap: wrap; gap: 4px; width: 100%; padding: 4px 0; }
-        .listener-tag { background: #fff; border: 1px solid var(--dark-gray); padding: 1px 4px; border-radius: 2px; position: relative; font-size: 8px; }
-        .del-btn { position: absolute; top: -4px; right: -4px; background: #000; color: #fff; border-radius: 50%; width: 10px; height: 10px; font-size: 7px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
+        /* タグ共通 */
+        #listener-column, #history-list { display: flex; flex-wrap: wrap; gap: 4px; width: 100%; padding: 4px 0; }
+        .tag-item { background: #fff; border: 1px solid var(--dark-gray); padding: 1px 12px 1px 4px; border-radius: 2px; position: relative; font-size: 8px; cursor: pointer; }
+        .del-btn { position: absolute; top: 0; right: 0; width: 12px; height: 100%; font-size: 8px; display: flex; align-items: center; justify-content: center; color: #999; }
 
-        /* 下部パネルも幅を統一 */
-        .bottom-controls { 
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); 
-            width: var(--total-width); background: white; border-top: 2px solid var(--dark-gray); z-index: 2000; border-radius: 5px 5px 0 0; 
-        }
+        /* 下部パネル */
+        .bottom-controls { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: var(--total-width); background: white; border-top: 2px solid var(--dark-gray); z-index: 2000; border-radius: 5px 5px 0 0; }
         .bottom-header { padding: 5px 10px; cursor: pointer; display: flex; align-items: center; font-size: 10px; background: #f0f0f0; }
         .bottom-body { padding: 6px; }
         .input-row { display: flex; gap: 3px; }
         input[type="text"] { padding: 5px; border-radius: 2px; border: 1px solid var(--dark-gray); font-size: 11px; flex: 1; min-width: 0; }
-        
-        /* カウント背景 */
-        .c0 { background-color: #fff !important; } 
-        .c1 { background-color: #ffcccc !important; } 
-        .c2 { background-color: #ff9999 !important; } 
-        .c3 { background-color: #ff6666 !important; color: #fff !important; }
+
+        .c0 { background-color: #fff !important; } .c1 { background-color: #ffcccc !important; } .c2 { background-color: #ff9999 !important; } .c3 { background-color: #ff6666 !important; color: #fff !important; }
     </style>
 </head>
 <body onload="initApp()">
@@ -95,39 +68,32 @@
     </div>
 
     <div class="content">
-        <div class="section-header-row">
-            <div class="section-header" onclick="toggleSection('grid-obtained', this)"><span>▶ ⚔️ 攻撃可能</span></div>
-            <button id="sort-obtained-btn" class="sort-btn" onclick="cycleObtainedSort()">解放順</button>
-        </div>
-        <div id="grid-obtained" class="grid-container" style="display:none;"></div>
+        <div class="section-header-row"><div class="section-header" onclick="toggleSection('grid-obtained', this)"><span>▼ ⚔️ 攻撃可能</span></div><button id="sort-obtained-btn" class="sort-btn" onclick="cycleObtainedSort()">解放順</button></div>
+        <div id="grid-obtained" class="grid-container"></div>
 
-        <div class="section-header-row">
-            <div class="section-header" onclick="toggleSection('grid-unlocked', this)"><span>▶ ✨ 誘える</span></div>
-            <button id="sort-unlocked-btn" class="sort-btn" onclick="cycleUnlockedSort()">解放順</button>
-        </div>
-        <div id="grid-unlocked" class="grid-container" style="display:none;"></div>
+        <div class="section-header-row"><div class="section-header" onclick="toggleSection('grid-unlocked', this)"><span>▼ ✨ 誘える</span></div><button id="sort-unlocked-btn" class="sort-btn" onclick="cycleUnlockedSort()">解放順</button></div>
+        <div id="grid-unlocked" class="grid-container"></div>
 
-        <div class="section-header-row">
-            <div class="section-header" onclick="toggleSection('listener-column', this)"><span>▶ 👥 協力リスナー</span></div>
-        </div>
+        <div class="section-header-row"><div class="section-header" onclick="toggleSection('listener-column', this)"><span>▼ 👥 協力リスナー</span></div></div>
         <div id="listener-column"></div>
     </div>
 </div>
 
 <div class="bottom-controls">
-    <div class="bottom-header" onclick="toggleBottomMenu()"><span>▼ 入力メニュー</span></div>
+    <div class="bottom-header" onclick="toggleBottomMenu()"><span>▼ 入力・履歴</span></div>
     <div id="bottom-menu-body" class="bottom-body">
-        <div id="history-list" style="display:flex; gap:3px; overflow-x:auto; margin-bottom:5px;"></div>
+        <div style="font-size: 8px; color: #666;">履歴（タップで入力・×で消去）:</div>
+        <div id="history-list"></div>
         <div class="input-row">
             <input type="text" id="in-name" placeholder="名">
             <input type="text" id="in-ruby" placeholder="よみ">
-            <button onclick="addListener()" style="background:var(--main-red); color:white; border:none; padding:0 8px; border-radius:2px; font-size:10px;">+</button>
+            <button onclick="addListener()" style="background:var(--main-red); color:white; border:none; padding:0 8px; border-radius:2px; font-size:10px;">追加</button>
         </div>
+        <button onclick="allReset()" style="width:100%; background:none; border:none; color:#999; text-decoration:underline; font-size:8px; margin-top:5px;">リセット</button>
     </div>
 </div>
 
 <script>
-    // Firebase設定（ここにご自身のものを入れてください。以下は前回の設定を継承）
     const firebaseConfig = {
         apiKey: "AIzaSyDBwTBNCz5N2SZLqT3qJz2kNUFMF2F72LY",
         authDomain: "pokemonsvcounteron-line.firebaseapp.com",
@@ -138,10 +104,9 @@
         appId: "1:299560616558:web:1169418fef8d0099041c7f"
     };
 
-    let db, listeners = [], obtainedPokemon = [], nameHistory = [], pokemonUnlockTimes = {};
+    let db, listeners = [], obtainedPokemon = [], nameHistory = [];
     let unlockedSortMode = 'release', obtainedSortMode = 'release';
 
-    // データサンプル
     const paldeaDex = [{id:"001",name:"ニャオハ"},
 {id:"002",name:"ニャローテ"},
 {id:"003",name:"マスカーニャ"},
@@ -553,6 +518,7 @@
     function initApp() {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
+        
         const r1 = document.getElementById('row-1'), r2 = document.getElementById('row-2');
         const cols = [["あ","い","う","え","お"],["か","き","く","け","こ"],["さ","し","す","せ","そ"],["た","ち","つ","て","と"],["な","に","ぬ","ね","の"],["は","ひ","ふ","へ","ほ"],["ま","み","む","め","も"],["や","","ゆ","","よ"],["ら","り","る","れ","ろ"],["わ","","","","ん"]];
         cols.forEach((c, i) => {
@@ -564,8 +530,22 @@
             });
             if(i < 5) r1.appendChild(d); else r2.appendChild(d);
         });
-        db.ref('pokeSyncData').on('value', snap => {
-            const d = snap.val()||{}; listeners=d.listeners||[]; obtainedPokemon=d.obtainedPokemon||[]; nameHistory=d.nameHistory||[]; updateUI();
+
+        // リアルタイム購読
+        db.ref('pokeSyncData/listeners').on('value', s => { 
+            const val = s.val() || {};
+            listeners = Object.keys(val).map(k => ({...val[k], firebaseKey: k}));
+            updateUI(); 
+        });
+        db.ref('pokeSyncData/obtainedPokemon').on('value', s => { 
+            const val = s.val() || {};
+            obtainedPokemon = Object.keys(val).map(k => ({...val[k], firebaseKey: k}));
+            updateUI(); 
+        });
+        db.ref('pokeSyncData/nameHistory').on('value', s => { 
+            const val = s.val()||{};
+            nameHistory = Object.keys(val).map(k => ({...val[k], firebaseKey: k})); 
+            updateUI(); 
         });
     }
 
@@ -577,43 +557,58 @@
             const char = c.querySelector('.char-name').innerText; const count = s[char]||0;
             c.querySelector('.char-count').innerText = count; c.className = 'char-cell c' + Math.max(0, Math.min(3, count));
         });
-        document.getElementById('listener-column').innerHTML = listeners.map(l => `<div class="listener-tag"><div class="del-btn" onclick="removeListener(${l.id})">×</div>${l.display}</div>`).join('');
+        document.getElementById('listener-column').innerHTML = listeners.map(l => `<div class="tag-item" style="cursor:default;"><div class="del-btn" onclick="removeListener('${l.firebaseKey}')">×</div>${l.display}</div>`).join('');
+        document.getElementById('history-list').innerHTML = [...nameHistory].reverse().map(h => `
+            <div class="tag-item" onclick="fillIn('${h.display}','${h.ruby}')">
+                ${h.display}
+                <div class="del-btn" onclick="event.stopPropagation(); deleteHistory('${h.firebaseKey}')">×</div>
+            </div>
+        `).join('');
         renderGrids(s);
-        document.getElementById('history-list').innerHTML = nameHistory.map(h => `<div style="background:#eee;padding:1px 5px;border-radius:10px;font-size:8px;cursor:pointer;white-space:nowrap;" onclick="document.getElementById('in-name').value='${h.display}';document.getElementById('in-ruby').value='${h.ruby}'">${h.display}</div>`).join('');
     }
 
     function renderGrids(s) {
-        const now = Date.now();
         let unlocked = paldeaDex.filter(p => {
             if(obtainedPokemon.find(op=>op.id===p.id)) return false;
             const req = {}; [...toSeion(p.name)].forEach(c => req[c] = (req[c]||0)+1);
-            const can = Object.keys(req).every(c => (s[c]||0) >= req[c]);
-            if(can && !pokemonUnlockTimes[p.id]) pokemonUnlockTimes[p.id] = now;
-            return can;
+            return Object.keys(req).every(c => (s[c]||0) >= req[c]);
         });
-        const sort = (list, mode, times) => {
+        const sort = (list, mode) => {
             if(mode==='id') return [...list].sort((a,b)=>a.id.localeCompare(b.id));
             if(mode==='name') return [...list].sort((a,b)=>a.name.localeCompare(b.name));
-            return [...list].sort((a,b)=>(times[b.id]||b.timestamp||0)-(times[a.id]||a.timestamp||0));
+            return [...list].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
         };
-        document.getElementById('grid-unlocked').innerHTML = sort(unlocked, unlockedSortMode, pokemonUnlockTimes).map(p => `<div class="pokemon-entry"><div class="p-name">${p.name}</div><div class="p-btn btn-plus" onclick="consume('${p.id}')">＋</div></div>`).join('');
-        document.getElementById('grid-obtained').innerHTML = sort(obtainedPokemon, obtainedSortMode, {}).map(p => `<div class="pokemon-entry"><div class="p-btn btn-minus" onclick="refund(${p.timestamp})">－</div><div class="p-name">${p.name}</div></div>`).join('');
+        document.getElementById('grid-unlocked').innerHTML = sort(unlocked, unlockedSortMode).map(p => `<div class="pokemon-entry"><div class="p-name">${p.name}</div><div class="p-btn btn-plus" onclick="consume('${p.id}')">＋</div></div>`).join('');
+        document.getElementById('grid-obtained').innerHTML = sort(obtainedPokemon, obtainedSortMode).map(p => `<div class="pokemon-entry"><div class="p-btn btn-minus" onclick="refund('${p.firebaseKey}')">－</div><div class="p-name">${p.name}</div></div>`).join('');
     }
 
     window.addListener = () => {
         const n = document.getElementById('in-name'), r = document.getElementById('in-ruby'); if(!n.value) return;
-        listeners.push({ id: Date.now(), display: n.value, ruby: r.value || n.value });
-        nameHistory = [{display: n.value, ruby: r.value || n.value}, ...nameHistory.filter(h=>h.display!==n.value)].slice(0, 10);
-        n.value = ""; r.value = ""; db.ref('pokeSyncData').update({ listeners, nameHistory });
+        const data = { display: n.value, ruby: r.value || n.value, timestamp: Date.now() };
+        db.ref('pokeSyncData/listeners').push(data);
+        db.ref('pokeSyncData/nameHistory').push({ display: n.value, ruby: r.value || n.value });
+        n.value = ""; r.value = "";
     };
-    window.removeListener = (id) => { listeners = listeners.filter(l=>l.id!==id); db.ref('pokeSyncData/listeners').set(listeners); };
-    window.consume = (id) => { obtainedPokemon.unshift({...paldeaDex.find(x=>x.id===id), timestamp: Date.now()}); db.ref('pokeSyncData/obtainedPokemon').set(obtainedPokemon); };
-    window.refund = (ts) => { obtainedPokemon = obtainedPokemon.filter(p=>p.timestamp!==ts); db.ref('pokeSyncData/obtainedPokemon').set(obtainedPokemon); };
+
+    window.removeListener = (key) => db.ref('pokeSyncData/listeners/' + key).remove();
+    window.deleteHistory = (key) => db.ref('pokeSyncData/nameHistory/' + key).remove();
+    window.fillIn = (n, r) => { document.getElementById('in-name').value = n; document.getElementById('in-ruby').value = r; };
+
+    window.consume = (id) => { 
+        const p = paldeaDex.find(x=>x.id===id);
+        db.ref('pokeSyncData/obtainedPokemon').push({...p, timestamp: Date.now()}); 
+    };
+    window.refund = (key) => {
+        if(!key || key === 'undefined') return;
+        db.ref('pokeSyncData/obtainedPokemon/' + key).remove();
+    };
+
     window.toggleSection = (id, el) => { const t = document.getElementById(id); const h = t.style.display==='none'; t.style.display = h ? (id.includes('grid')?'grid':'flex') : 'none'; el.querySelector('span').innerText = (h?'▼ ':'▶ ')+el.innerText.slice(2); };
     window.toggleBottomMenu = () => { const b = document.getElementById('bottom-menu-body'); b.style.display = b.style.display==='none'?'block':'none'; };
     window.cycleUnlockedSort = () => { unlockedSortMode = (unlockedSortMode==='release'?'id':unlockedSortMode==='id'?'name':'release'); updateSortBtnText('sort-unlocked-btn', unlockedSortMode); updateUI(); };
     window.cycleObtainedSort = () => { obtainedSortMode = (obtainedSortMode==='release'?'id':obtainedSortMode==='id'?'name':'release'); updateSortBtnText('sort-obtained-btn', obtainedSortMode); updateUI(); };
-    function updateSortBtnText(id, mode) { const lbl={'release':'解放順','id':'図鑑順','name':'名前順'}; document.getElementById(id).innerText = lbl[mode]; }
+    function updateSortBtnText(id, m) { const lbl={'release':'解放順','id':'図鑑順','name':'名前順'}; document.getElementById(id).innerText = lbl[m]; }
+    window.allReset = () => { if(confirm("リセットしますか？")){ db.ref('pokeSyncData/listeners').remove(); db.ref('pokeSyncData/obtainedPokemon').remove(); } };
 </script>
 </body>
 </html>
